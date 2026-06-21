@@ -189,26 +189,3 @@ grid on;
 xlim([0 3]);        % Focus on transient region
 ylim([0 1.5]);
 
-%% 8. Export Figures for Report (optional)
-% saveas(findobj('Name','Fig1b: Open-loop Step'), 'fig1_open_loop.png');
-% saveas(findobj('Name','Fig2b: Closed-loop Step'), 'fig2_closed_loop.png');
-% saveas(findobj('Name','Fig3: Sampling Time Effect'), 'fig3_sampling_time.png');
-% saveas(findobj('Name','FigPZ OL'), 'figpz_open_loop.png');
-% saveas(findobj('Name','FigPZ CL'), 'figpz_closed_loop.png');
-
-%% 9. Simulink Verification Checklist
-disp(' ');
-disp('===================================================');
-disp('  SIMULINK VERIFICATION CHECKLIST');
-disp('===================================================');
-disp('1. Use "Discrete PID Controller" block (NOT continuous PID)');
-disp('2. Controller: Parallel form, Kp=8, Ki=2, Kd=0.1');
-disp('   Sample time = 0.1, Discrete-time domain');
-disp('3. Plant: "Discrete Transfer Fcn" block');
-disp('   Numerator [0.2], Denominator [1 -0.8], Sample time = 0.1');
-disp('4. Sum block: List of signs = |+-  (negative feedback)');
-disp('5. Step input: Step time = 0, Final value = 1');
-disp('6. Scope should show fast rise, overshoot, and settling to 1.0');
-disp('   If output slowly reaches ~0.83, the feedback loop is broken');
-disp('   or the PID block is running in continuous mode.');
-disp('===================================================');
