@@ -79,6 +79,6 @@ project-simulation-of-system/
 
 ## Tools Used
 
-- MATLAB R2021a or later
+- MATLAB
 - Simulink
-- Control System Toolbox
+
