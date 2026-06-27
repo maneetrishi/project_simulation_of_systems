@@ -1,117 +1,78 @@
 %% Digital Control of a Discrete-Time System
-% Task 3: DLBENGPSS01
-% Clear workspace
-clear; clc; close all;
+% Task 3: DLBENGPSS01 - Final Clean Script
+% 5 figures: open-loop step, open-loop pzmap, closed-loop step,
+%            closed-loop pzmap, sampling time effect
+close all; clc;
 
 %% System Parameters
-Ts = 0.1;           % Sampling time [s]
-N  = 100;           % Number of samples for dstep
-t_end = N * Ts;     % Simulation end time [s]
+Ts = 0.1;
+N  = 100;
+t_end = N * Ts;
 
 %% Plant Definition
-% Difference equation: y[k+1] = 0.8*y[k] + 0.2*u[k]
-% Transfer function:   G(z) = 0.2 / (z - 0.8)
 num = 0.2;
 den = [1 -0.8];
-
-% Create discrete LTI system object (modern equivalent of "dlti")
 H = tf(num, den, Ts);
 H.TimeUnit = 'seconds';
 
-%% 1. Open-Loop Response using dstep (legacy)
-% dstep requires polynomials in ascending powers of z^-1:
-% 0.2/(z-0.8) = (0.2*z^-1) / (1 - 0.8*z^-1)
-num_dstep = [0  0.2];   % 0 + 0.2*z^-1
-den_dstep = [1 -0.8];   % 1 - 0.8*z^-1
+%% FIGURE 1: Open-Loop Step Response using dstep
+% dstep requires polynomials in ascending powers of z^-1
+num_dstep = [0  0.2];
+den_dstep = [1 -0.8];
+y_ol = dstep(num_dstep, den_dstep, N);
+t_ol = (0:N-1)' * Ts;
 
-y_ol = dstep(num_dstep, den_dstep, N);   % Only capture y
-t_ol = (0:N-1)' * Ts;                    % Generate time vector manually
-
-figure('Name','Fig1: Open-loop dstep');
+figure('Name','Fig1: Open-loop Step');
 stairs(t_ol, y_ol, 'LineWidth', 1.5, 'Color', [0 0.4470 0.7410]);
-title('Open-Loop Step Response using dstep')
-xlabel('Time (s)')
-ylabel('Output y[k]')
-grid on;
-ylim([0 1.2]);
+title('Open-Loop Step Response');
+xlabel('Time (s)'); ylabel('Output y[k]');
+grid on; ylim([0 1.2]);
 
-% Modern step response for report figure
-figure('Name','Fig1b: Open-loop Step');
-step(H, t_end);
-title('Open-Loop Step Response')
-xlabel('Time (s)')
-ylabel('Output y[k]')
-grid on;
-
-%% 2. Open-Loop Pole-Zero Map
-figure('Name','FigPZ OL');
+%% FIGURE 2: Open-Loop Pole-Zero Map
+figure('Name','Fig2: OL Pole-Zero Map');
 pzmap(H);
-title('Open-Loop Pole-Zero Map')
-grid on;
-axis([-1.5 1.5 -1.5 1.5]);  
-
+title('Open-Loop Pole-Zero Map'); grid on;
+axis([-1.5 1.5 -1.5 1.5]);
 
 % Analytical stability check
 p_ol = pole(H);
-disp('--- Open-Loop Pole ---');
+disp('=== Open-Loop Pole ===');
 disp(p_ol);
-disp(['Magnitude: ', num2str(abs(p_ol))]);
+fprintf('Magnitude: %.4f\n', abs(p_ol));
 if abs(p_ol) < 1
     disp('Open-loop system is ASYMPTOTICALLY STABLE (|z| < 1).');
 else
     disp('Open-loop system is UNSTABLE.');
 end
 
-%% 3. Discrete PID Controller Design
+%% Discrete PID Controller Design
 Kp = 8.0;
 Ki = 2.0;
 Kd = 0.1;
 
-% Discrete PID controller (parallel form)
 C = pid(Kp, Ki, Kd);
 C.Ts = Ts;
 C.TimeUnit = 'seconds';
 
 disp(' ');
-disp('--- Discrete PID Controller C(z) ---');
+disp('=== Discrete PID Controller C(z) ===');
 disp(C);
 
-%% 4. Closed-Loop System
-G  = series(C, H);      % Controller + Plant
-CL = feedback(G, 1);    % Unity negative feedback
+%% Closed-Loop System
+CL = feedback(series(C, H), 1);
 
-%% 4. Closed-Loop dstep
-[num_cl, den_cl] = tfdata(CL, 'v');
-n_den = length(den_cl);
-n_num = length(num_cl);
-num_cl_dstep = [zeros(1, n_den - n_num), num_cl];  % Pad leading zeros
-den_cl_dstep = den_cl;
-
-y_cl = dstep(num_cl_dstep, den_cl_dstep, N);   % Only capture y
-t_cl = (0:N-1)' * Ts;                          % Generate time vector manually
-
-figure('Name','Fig2: Closed-loop dstep');
-stairs(t_cl, y_cl, 'LineWidth', 1.5, 'Color', [0.8500 0.3250 0.0980]);
-title('Closed-Loop Step Response with PID using dstep')
-xlabel('Time (s)')
-ylabel('Output y[k]')
-grid on;
-
-% Modern step for report
-figure('Name','Fig2b: Closed-loop Step');
+%% FIGURE 3: Closed-Loop Step Response
+figure('Name','Fig3: CL Step');
 step(CL, t_end);
-title('Closed-Loop Step Response with Improved PID')
-xlabel('Time (s)')
-ylabel('Output y[k]')
+title('Closed-Loop Step Response with Improved PID');
+xlabel('Time (s)'); ylabel('Output y[k]');
 grid on;
 
-%% 5. Closed-Loop Pole-Zero Map
-figure('Name','FigPZ CL');
+%% FIGURE 4: Closed-Loop Pole-Zero Map
+figure('Name','Fig4: CL Pole-Zero Map');
 pzmap(CL);
-title('Closed-Loop Pole-Zero Map')
-grid on;
-axis([-1.5 1.5 -1.5 1.5]);   
-
+title('Closed-Loop Pole-Zero Map'); grid on;
+axis([-1.5 1.5 -1.5 1.5]);
 
 % Stability check
 p_cl = pole(CL);
@@ -119,17 +80,16 @@ p_cl_mag = abs(p_cl);
 stable = all(p_cl_mag < 1);
 
 disp(' ');
-disp('--- Closed-Loop Poles ---');
+disp('=== Closed-Loop Poles ===');
 disp(p_cl);
-disp('Pole magnitudes:');
-disp(p_cl_mag);
+disp('Pole magnitudes:'); disp(p_cl_mag);
 if stable
     disp('Closed-loop system is STABLE: all poles inside unit circle.');
 else
     disp('WARNING: Closed-loop system is UNSTABLE.');
 end
 
-%% 6. Performance Metrics (Explicit 2% Settling Time Criterion)
+%% Performance Metrics (Explicit 2% Settling Time Criterion)
 S_ol = stepinfo(H, 'SettlingTimeThreshold', 0.02);
 S_cl = stepinfo(CL, 'SettlingTimeThreshold', 0.02);
 
@@ -155,37 +115,23 @@ fprintf('Peak Amplitude : %.4f\n', S_cl.Peak);
 fprintf('Peak Time      : %.4f s\n', S_cl.PeakTime);
 fprintf('Steady-State   : %.4f\n', dcgain(CL));
 
-%% 7. Sampling-Time Effect (Ts = 0.1 s vs Ts = 0.05 s)
+%% FIGURE 5: Sampling Time Effect (Ts = 0.1 vs 0.05)
 Ts2 = 0.05;
-N2  = 200;              % Double samples to maintain duration
-t_end2 = N2 * Ts2;
-
-% Plant and controller at finer sampling
 H2 = tf(num, den, Ts2);
-H2.TimeUnit = 'seconds';
-
 C2 = pid(Kp, Ki, Kd);
 C2.Ts = Ts2;
-C2.TimeUnit = 'seconds';
-
 CL2 = feedback(series(C2, H2), 1);
 
-% Common time vector for clean overlay
-t_common = 0:0.01:min(t_end, t_end2);
+[y1, t1] = step(CL, 0:Ts:t_end);
+[y2, t2] = step(CL2, 0:Ts2:(N*Ts2));
 
-[y1, ~] = step(CL, t_common);
-[y2, ~] = step(CL2, t_common);
-
-figure('Name','Fig3: Sampling Time Effect');
-plot(t_common, y1, 'b-', 'LineWidth', 1.5);
-hold on;
-plot(t_common, y2, 'r--', 'LineWidth', 1.5);
-hold off;
+figure('Name','Fig5: Sampling Time');
+plot(t1, y1, 'b-', 'LineWidth', 1.5); hold on;
+plot(t2, y2, 'r--', 'LineWidth', 1.5); hold off;
 legend('T_s = 0.1 s', 'T_s = 0.05 s', 'Location', 'best');
 title('Effect of Sampling Time on Closed-Loop Response');
-xlabel('Time (s)');
-ylabel('Output y[k]');
-grid on;
-xlim([0 3]);        % Focus on transient region
-ylim([0 1.5]);
+xlabel('Time (s)'); ylabel('Output y[k]'); grid on;
+xlim([0 3]); ylim([0 1.5]);
 
+disp(' ');
+disp('=== All 5 figures generated successfully ===');
