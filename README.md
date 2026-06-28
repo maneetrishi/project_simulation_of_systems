@@ -13,9 +13,9 @@ G(z) = \frac{0.2}{z - 0.8}
 $$
 
 **Controller:** Discrete PID with:
-- Proportional gain Kp = 8.0
-- Integral gain Ki = 2.0
-- Derivative gain Kd = 0.1
+- Proportional gain Kp = 6.0
+- Integral gain Ki = 1.5
+- Derivative gain Kd = 0
 - Sample time Ts = 0.1 s
 
 ## Repository Structure
@@ -49,7 +49,6 @@ project-simulation-of-system/
    - Figure 3: Closed-loop step response with PID (using `step`)
    - Figure 4: Closed-loop pole-zero map
    - Figure 5: Effect of sampling time (Ts = 0.1 s vs Ts = 0.05 s)
-5. Performance metrics are printed to the Command Window with ±2% settling-time criterion.
 
 ### Simulink
 1. Open MATLAB and navigate to the `simulink/` folder.
@@ -72,9 +71,9 @@ project-simulation-of-system/
 ## Key Findings
 
 - The open-loop system is asymptotically stable with a single pole at z = 0.8 (|0.8| < 1), exhibiting a monotonic step response that settles to 1.0 without overshoot.
-- The discrete PID controller (Kp = 8.0, Ki = 2.0, Kd = 0.1) significantly improves transient response, achieving fast rise time (~0.08 s) with approximately 25% overshoot and settling to 1.0.
+- The discrete PID controller (Kp = 6.0, Ki = 1.50, Kd = 0) significantly improves transient response, achieving fast rise time with approximately 21% overshoot and settling to 1.0.
 - All closed-loop poles lie strictly inside the unit circle, confirming closed-loop stability.
-- Reducing the sampling time from 0.1 s to 0.05 s reduces overshoot (from ~1.25 to ~1.06) and transient oscillations, consistent with digital control theory.
+- Reducing the sampling time from 0.1 s to 0.05 s reduces overshoot (from ~1.21 to ~1.06) and transient oscillations, consistent with digital control theory.
 - The Simulink model validates the feedback loop structure; differences between MATLAB and Simulink responses are attributed to internal discretization method variations in Simulink's PID block.
 
 ## Tools Used
